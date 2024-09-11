@@ -2,15 +2,15 @@ const readline = require('readline-sync');
 const db = require('./db');
 const customers = require('./customersModule');
 const products = require('./productsModule');
-const purchaseOrders = require('./purchaseOrdersModule');
+const orders = require('./ordersModule');
 const payments = require('./paymentsModule');
-const { addOrderDetail } = require('./purchaseOrdersModule');
+const { addOrderDetail } = require('./ordersModule');
 
 async function principalMenu(connection) {
     console.log("\nPrincipal Menu:");
     console.log("1. Customers");
     console.log("2. Products");
-    console.log("3. Purchase Orders");
+    console.log("3. Orders");
     console.log("4. Payments");
     console.log("5. Exit");
 
@@ -23,7 +23,7 @@ async function principalMenu(connection) {
             await productMenu(connection);
             break;
         case 3:
-            await purchaseOrderMenu(connection);
+            await orderMenu(connection); // Corrected function name
             break;
         case 4:
             await paymentMenu(connection);
@@ -106,12 +106,12 @@ async function productMenu(connection) {
     await productMenu(connection); 
 }
 
-async function purchaseOrderMenu(connection) {
-    console.log("\nPurchase Order Menu:");
-    console.log("1. Add a purchase order");
-    console.log("2. Update a purchase order");
-    console.log("3. Delete a purchase order");
-    console.log("4. Display purchase orders");
+async function orderMenu(connection) {
+    console.log("\n Order Menu:");
+    console.log("1. Add an order");
+    console.log("2. Update an order");
+    console.log("3. Delete an order");
+    console.log("4. Display orders");
     console.log("5. Manage order details");
     console.log("6. Back to Principal Menu");
 
@@ -119,16 +119,16 @@ async function purchaseOrderMenu(connection) {
     try {
         switch (choice) {
             case 1:
-                await purchaseOrders.addPurchaseOrder(connection);
+                await orders.addOrder(connection); // Corrected module usage
                 break;
             case 2:
-                await purchaseOrders.updatePurchaseOrder(connection);
+                await orders.updateOrder(connection); // Corrected module usage
                 break;
             case 3:
-                await purchaseOrders.deletePurchaseOrder(connection);
+                await orders.deleteOrder(connection); // Corrected module usage
                 break;
             case 4:
-                await purchaseOrders.displayPurchaseOrders(connection);
+                await orders.displayOrders(connection); // Corrected module usage
                 break;
             case 5:
                 await orderDetailsMenu(connection);
@@ -141,31 +141,40 @@ async function purchaseOrderMenu(connection) {
     } catch (error) {
         console.error('An error occurred:', error.message);
     }
-    await purchaseOrderMenu(connection); 
+    await orderMenu(connection); // Corrected recursive call
 }
 
-// Order Details Sub-Menu
 async function orderDetailsMenu(connection) {
     console.log("\nOrder Details Menu:");
     console.log("1. Add an order detail");
-    console.log("2. Back to Purchase Order Menu");
+    console.log("2. Save order details"); // Option pour sauvegarder
+    console.log("3. Cancel order details"); // Option pour annuler
+    console.log("4. Back to Order Menu");
 
     const choice = readline.questionInt("Choose an option: ");
     try {
         switch (choice) {
             case 1:
-                const purchaseOrderId = readline.questionInt("Enter the Purchase Order ID: ");
-                await addOrderDetail(purchaseOrderId);
+                const purchaseOrderId = readline.questionInt("Enter the Order ID: ");
+                await addOrderDetail(purchaseOrderId, connection); // Assurez-vous de passer la connexion si nécessaire
                 break;
             case 2:
-                return; 
+                await saveOrderDetails(connection); // Appelle la fonction pour sauvegarder les détails de la commande
+                console.log("Order details saved successfully.");
+                break;
+            case 3:
+                await cancelOrderDetails(connection); // Appelle la fonction pour annuler les détails de la commande
+                console.log("Order details cancelled successfully.");
+                break;
+            case 4:
+                return; // Retourne au menu principal des commandes
             default:
                 console.log("Invalid option, please try again.");
         }
     } catch (error) {
         console.error('An error occurred:', error.message);
     }
-    await orderDetailsMenu(connection); 
+    await orderDetailsMenu(connection); // Retourne au sous-menu après l'action
 }
 
 async function paymentMenu(connection) {

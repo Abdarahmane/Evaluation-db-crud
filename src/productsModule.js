@@ -52,7 +52,8 @@ async function addProduct() {
     }
 
     try {
-        await db.query('INSERT INTO Product (name, description, price, stock, category, barcode, status) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, description, price, stock, category, barcode, status]);
+        // Corrected table name to 'products'
+        await db.query('INSERT INTO products (name, description, price, stock, category, barcode, status) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, description, price, stock, category, barcode, status]);
         console.log("Product successfully added!");
     } catch (err) {
         console.error("Error adding product:", err.message);
@@ -76,7 +77,8 @@ async function updateProduct() {
     }
 
     try {
-        await db.query('UPDATE Product SET name = ?, description = ?, price = ?, stock = ?, category = ?, barcode = ?, status = ? WHERE id = ?', [name, description, price, stock, category, barcode, status, id]);
+        // Corrected table name to 'products'
+        await db.query('UPDATE products SET name = ?, description = ?, price = ?, stock = ?, category = ?, barcode = ?, status = ? WHERE id = ?', [name, description, price, stock, category, barcode, status, id]);
         console.log("Product successfully updated!");
     } catch (err) {
         console.error("Error updating product:", err.message);
@@ -88,7 +90,8 @@ async function deleteProduct() {
     const id = readline.questionInt("ID of the product to delete: ");
 
     try {
-        await db.query('DELETE FROM Product WHERE id = ?', [id]);
+        // Corrected table name to 'products'
+        await db.query('DELETE FROM products WHERE id = ?', [id]);
         console.log("Product successfully deleted!");
     } catch (err) {
         console.error('Error deleting product:', err.message);
@@ -98,7 +101,8 @@ async function deleteProduct() {
 // Display all products
 async function displayProducts() {
     try {
-        const results = await db.query('SELECT * FROM Product');
+        // Corrected table name to 'products'
+        const [results] = await db.query('SELECT * FROM products');
         if (results.length === 0) {
             console.log("No products found.");
         } else {

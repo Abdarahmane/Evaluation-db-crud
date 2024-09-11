@@ -2,11 +2,11 @@ const readline = require('readline-sync');
 const db = require('./db');
 
 // Validate payment data
-function validatePayment(paymentdate, amount, payment_method, order_id) {
+function validatePayment(date, amount, payment_method, order_id) {
     let isValid = true;
 
-    if (!paymentdate) {
-        console.log("Payment Date is required.");
+    if (!date) {
+        console.log("Date is required.");
         isValid = false;
     }
     if (amount === undefined || isNaN(amount) || amount <= 0) {
@@ -27,17 +27,17 @@ function validatePayment(paymentdate, amount, payment_method, order_id) {
 
 // Add a new payment
 async function addPayment() {
-    const paymentdate = readline.question("Payment Date (YYYY-MM-DD): ");
+    const date = readline.question("Date (YYYY-MM-DD): ");
     const amount = parseFloat(readline.question("Amount: "));
     const payment_method = readline.question("Payment Method: ");
     const order_id = readline.questionInt("Order ID: ");
 
-    if (!validatePayment(paymentdate, amount, payment_method, order_id)) {
+    if (!validatePayment(date, amount, payment_method, order_id)) {
         return;
     }
 
     try {
-        await db.query('INSERT INTO payments (paymentdate, amount, payment_method, order_id) VALUES (?, ?, ?, ?)', [paymentdate, amount, payment_method, order_id]);
+        await db.query('INSERT INTO payments (date, amount, payment_method, order_id) VALUES (?, ?, ?, ?)', [date, amount, payment_method, order_id]);
         console.log("Payment successfully added!");
     } catch (err) {
         console.error("Error adding payment:", err.message);
@@ -48,17 +48,17 @@ async function addPayment() {
 async function updatePayment() {
     const id = readline.questionInt("ID of the payment to update: ");
 
-    const paymentdate = readline.question("New Payment Date (YYYY-MM-DD): ");
+    const date = readline.question("New Date (YYYY-MM-DD): ");
     const amount = parseFloat(readline.question("New Amount: "));
     const payment_method = readline.question("New Payment Method: ");
     const order_id = readline.questionInt("New Order ID: ");
 
-    if (!validatePayment(paymentdate, amount, payment_method, order_id)) {
+    if (!validatePayment(date, amount, payment_method, order_id)) {
         return;
     }
 
     try {
-        await db.query('UPDATE payments SET paymentdate = ?, amount = ?, payment_method = ?, order_id = ? WHERE payment_id = ?', [paymentdate, amount, payment_method, order_id, id]);
+        await db.query('UPDATE payments SET date = ?, amount = ?, payment_method = ?, order_id = ? WHERE id = ?', [date, amount, payment_method, order_id, id]);
         console.log("Payment successfully updated!");
     } catch (err) {
         console.error("Error updating payment:", err.message);
@@ -70,7 +70,7 @@ async function deletePayment() {
     const id = readline.questionInt("ID of the payment to delete: ");
 
     try {
-        await db.query('DELETE FROM payments WHERE payment_id = ?', [id]);
+        await db.query('DELETE FROM payments WHERE id = ?', [id]);
         console.log("Payment successfully deleted!");
     } catch (err) {
         console.error('Error deleting payment:', err.message);
