@@ -5,9 +5,8 @@ const customers = require('./customersModule');
 const products = require('./productsModule');
 const orders = require('./ordersModule');
 const payments = require('./paymentsModule');
-const {addProductToOrder , saveOrderDetails, cancelOrderDetails } = require('./ordersModule'); // Import the missing functions
 
-
+// Menu Principal
 async function principalMenu(connection) {
     console.log("\nPrincipal Menu:");
     console.log("1. Customers");
@@ -25,7 +24,7 @@ async function principalMenu(connection) {
             await productMenu(connection);
             break;
         case 3:
-            await orderMenu(connection); // Corrected function name
+            await orderMenu(connection);
             break;
         case 4:
             await paymentMenu(connection);
@@ -40,6 +39,100 @@ async function principalMenu(connection) {
     await principalMenu(connection);
 }
 
+// Menu des Commandes
+async function orderMenu(connection) {
+    console.log("\nOrder Menu:");
+    console.log("1. Add an order");
+    console.log("2. Update an order");
+    console.log("3. Delete an order");
+    console.log("4. Display orders");
+    console.log("5. Manage order details");
+    console.log("6. Back to Principal Menu");
+
+    const choice = readline.questionInt("Choose an option: ");
+    try {
+        switch (choice) {
+            case 1:
+                await orders.addOrder(connection);
+                break;
+            case 2:
+                await orders.updateOrder(connection);
+                break;
+            case 3:
+                await orders.deleteOrder(connection);
+                break;
+            case 4:
+                await orders.displayOrders(connection);
+                break;
+            case 5:
+                const orderId = readline.questionInt("Enter the order ID to manage details: ");
+                await orderDetailMenu(connection, orderId);
+                break;
+            case 6:
+                return;
+            default:
+                console.log("Invalid option, please try again.");
+        }
+    } catch (error) {
+        console.error('An error occurred:', error.message);
+    }
+    await orderMenu(connection);
+}
+
+// Menu des Détails de Commande
+async function orderDetailMenu(connection, orderId) {
+    try {
+        while (true) {
+            console.log("\nOrder Details Menu:");
+            console.log("1. Add a product to the order");
+            console.log("2. Save and finish adding details");
+            console.log("3. Return to Order Menu");
+
+            const choice = readline.questionInt("Choose an option: ");
+            switch (choice) {
+                case 1:
+                    // Ajouter un produit à la commande
+                    const productId = readline.questionInt("Enter product ID: ");
+                    const quantity = readline.questionInt("Enter quantity: ");
+
+                    // Validation des données
+                    if (isNaN(productId) || isNaN(quantity) || quantity <= 0) {
+                        console.log("Invalid product ID or quantity. Please try again.");
+                        break;
+                    }
+
+                    // Préparer la requête d'insertion pour les détails de la commande
+                    const detailsQuery = 'INSERT INTO orderDetails (orderId, productId, quantity) VALUES (?, ?, ?)';
+                    const detailsValues = [orderId, productId, quantity];
+
+                    try {
+                        await db.query(detailsQuery, detailsValues);
+                        console.log("Product added to order.");
+                    } catch (err) {
+                        console.error('Error executing query:', err.message);
+                    }
+                    break;
+
+                case 2:
+                    // Enregistrer et finir l'ajout des détails de la commande
+                    console.log("Order details saved.");
+                    return;
+
+                case 3:
+                    // Retourner au menu des commandes
+                    console.log("Returning to Order Menu.");
+                    return;
+
+                default:
+                    console.log("Invalid option, please try again.");
+            }
+        }
+    } catch (error) {
+        console.error('Error adding order details:', error.message);
+    }
+}
+
+// Menu des Clients
 async function customerMenu(connection) {
     console.log("\nCustomer Menu:");
     console.log("1. Add a customer");
@@ -74,6 +167,7 @@ async function customerMenu(connection) {
     await customerMenu(connection); 
 }
 
+// Menu des Produits
 async function productMenu(connection) {
     console.log("\nProduct Menu:");
     console.log("1. Add a product");
@@ -108,80 +202,9 @@ async function productMenu(connection) {
     await productMenu(connection); 
 }
 
-async function orderMenu(connection) {
-    console.log("\n Order Menu:");
-    console.log("1. Add an order");
-    console.log("2. Update an order");
-    console.log("3. Delete an order");
-    console.log("4. Display orders");
-    console.log("5. Manage order details");
-    console.log("6. Back to Principal Menu");
-
-    const choice = readline.questionInt("Choose an option: ");
-    try {
-        switch (choice) {
-            case 1:
-                await addOrder(connection);
-                break;
-            case 2:
-                await updateOrder(connection);
-                break;
-            case 3:
-                await deleteOrder(connection);
-                break;
-            case 4:
-                await displayOrders(connection);
-                break;
-            case 5:
-                const orderId = readline.questionInt("Enter the order ID to manage details: ");
-                await orderDetailsMenu(orderId, connection); // Correct function call
-                break;
-            case 6:
-                return; 
-            default:
-                console.log("Invalid option, please try again.");
-        }
-    } catch (error) {
-        console.error('An error occurred:', error.message);
-    }
-    await orderMenu(connection); 
-}
 
 
-async function orderDetailsMenu(orderId, connection) {
-    while (true) {
-        console.log("\nOrder Details Menu:");
-        console.log("11. Add a product to the order");
-        console.log("12. Save order details");
-        console.log("13. Cancel order details");
-        console.log("14. Exit to previous menu");
-
-        const choice = readline.questionInt("Choose an option: ");
-        try {
-            switch (choice) {
-                case 11:
-                    await addProductToOrder(orderId, connection);
-                    break;
-                case 12:
-                    await saveOrderDetails(orderId); // Removed unnecessary connection parameter
-                    break;
-                case 13:
-                    await cancelOrderDetails(orderId); // Ensure orderId is passed correctly
-                    break;
-                case 14:
-                    return; // Exit to previous menu
-                default:
-                    console.log("Invalid option, please try again.");
-            }
-        } catch (error) {
-            console.error('An error occurred:', error.message);
-        }
-    }
-}
-
-
-
-
+// Menu des Paiements
 async function paymentMenu(connection) {
     console.log("\nPayment Menu:");
     console.log("1. Add a payment");
@@ -216,6 +239,7 @@ async function paymentMenu(connection) {
     await paymentMenu(connection); 
 }
 
+// Fonction pour démarrer l'application
 async function startApp() {
     try {
         const connection = await db.connectToDB();
