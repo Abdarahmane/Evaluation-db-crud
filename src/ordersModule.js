@@ -112,7 +112,7 @@ async function deleteOrder(connection) {
     }
 
     try {
-        await connection.query('DELETE FROM orderdetails WHERE order_id = ?', [id]);
+        await connection.query('DELETE FROM order_details WHERE order_id = ?', [id]);
         await connection.query('DELETE FROM orders WHERE id = ?', [id]);
         console.log("Order successfully deleted!");
     } catch (err) {

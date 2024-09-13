@@ -1,3 +1,4 @@
+
 const readline = require('readline-sync');
 const db = require('./db');
 
@@ -9,6 +10,14 @@ function validateCustomer(name, email, address, phone) {
         console.log("Customer Name is required.");
         isValid = false;
     }
+
+    // Validate name (only letters and spaces)
+    const nameRegex = /^[A-Za-z\s]+$/;
+    if (name && !nameRegex.test(name)) {
+        console.log("Name must contain only letters and spaces.");
+        isValid = false;
+    }
+
     if (!email) {
         console.log("Customer Email is required.");
         isValid = false;
@@ -41,10 +50,28 @@ function validateCustomer(name, email, address, phone) {
 
 // Add a new customer
 async function addCustomer() {
-    const name = readline.question("Customer Name: ");
+    let name;
+    while (true) {
+        name = readline.question("Customer Name: ");
+        if (/^[A-Za-z\s]+$/.test(name)) {
+            break; // Break loop if name is valid
+        } else {
+            console.log("Name must contain only letters and spaces. Please try again.");
+        }
+    }
+
     const email = readline.question("Customer Email: ");
     const address = readline.question("Address: ");
-    const phone = readline.question("Phone Number: ");
+    
+    let phone;
+    while (true) {
+        phone = readline.question("Phone Number: ");
+        if (/^\d+$/.test(phone)) {
+            break; // Break loop if phone number is valid
+        } else {
+            console.log("Phone number must be numeric. Please try again.");
+        }
+    }
 
     if (!validateCustomer(name, email, address, phone)) {
         return;
@@ -79,17 +106,43 @@ async function checkCustomerExists(id) {
 
 // Update an existing customer
 async function updateCustomer() {
-    const id = readline.questionInt("ID of the customer to update: ");
+    let id;
+    while (true) {
+        id = readline.questionInt("ID of the customer to update: ");
+        if (!isNaN(id)) {
+            break;
+        } else {
+            console.log("ID must be a number. Please try again.");
+        }
+    }
 
     const exists = await checkCustomerExists(id);
     if (!exists) {
         return;
     }
 
-    const name = readline.question("New Name: ");
+    let name;
+    while (true) {
+        name = readline.question("New Name: ");
+        if (/^[A-Za-z\s]+$/.test(name)) {
+            break; // Break loop if name is valid
+        } else {
+            console.log("Name must contain only letters and spaces. Please try again.");
+        }
+    }
+
     const email = readline.question("New Email: ");
     const address = readline.question("New Address: ");
-    const phone = readline.question("New Phone Number: ");
+    
+    let phone;
+    while (true) {
+        phone = readline.question("New Phone Number: ");
+        if (/^\d+$/.test(phone)) {
+            break; // Break loop if phone number is valid
+        } else {
+            console.log("Phone number must be numeric. Please try again.");
+        }
+    }
 
     if (!validateCustomer(name, email, address, phone)) {
         return;
@@ -109,7 +162,15 @@ async function updateCustomer() {
 
 // Delete a customer
 async function deleteCustomer() {
-    const id = readline.questionInt("ID of the customer to delete: ");
+    let id;
+    while (true) {
+        id = readline.questionInt("ID of the customer to delete: ");
+        if (!isNaN(id)) {
+            break;
+        } else {
+            console.log("ID must be a number. Please try again.");
+        }
+    }
 
     const exists = await checkCustomerExists(id);
     if (!exists) {

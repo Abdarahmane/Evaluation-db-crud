@@ -46,8 +46,7 @@ async function orderMenu(connection) {
     console.log("2. Update an order");
     console.log("3. Delete an order");
     console.log("4. Display orders");
-    console.log("5. Manage order details");
-    console.log("6. Back to Principal Menu");
+    console.log("5. Back to Principal Menu");
 
     const choice = readline.questionInt("Choose an option: ");
     try {
@@ -64,11 +63,8 @@ async function orderMenu(connection) {
             case 4:
                 await orders.displayOrders(connection);
                 break;
+            
             case 5:
-                const orderId = readline.questionInt("Enter the order ID to manage details: ");
-                await orderDetailMenu(connection, orderId);
-                break;
-            case 6:
                 return;
             default:
                 console.log("Invalid option, please try again.");
@@ -84,9 +80,9 @@ async function orderDetailMenu(connection, orderId) {
     try {
         while (true) {
             console.log("\nOrder Details Menu:");
-            console.log("1. Add a product to the order");
-            console.log("2. Save and finish adding details");
-            console.log("3. Return to Order Menu");
+            console.log("11. Add a product to the order");
+            console.log("12. Save and finish adding details");
+            console.log("13. Return to Order Menu");
 
             const choice = readline.questionInt("Choose an option: ");
             switch (choice) {
@@ -102,7 +98,7 @@ async function orderDetailMenu(connection, orderId) {
                     }
 
                     // Préparer la requête d'insertion pour les détails de la commande
-                    const detailsQuery = 'INSERT INTO orderDetails (orderId, productId, quantity) VALUES (?, ?, ?)';
+                    const detailsQuery = 'INSERT INTO order_Details (order_Id, product_Id, quantity) VALUES (?, ?, ?)';
                     const detailsValues = [orderId, productId, quantity];
 
                     try {
