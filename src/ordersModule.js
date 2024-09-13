@@ -44,7 +44,7 @@ async function checkOrderExists(connection, id) {
 // Ajouter une nouvelle commande
 async function addOrder(connection) {
     try {
-        const orderDate = readline.question("Order Date (YYYY-MM-DD HH:MM:SS): ");
+        const orderDate = readline.question("Order Date (YYYY-MM-DD ): ");
         const delivery_Address = readline.question("Delivery Address: ");
         const track_number = readline.question("Track Number: ");
         const status = readline.question("Order Status : ");
@@ -78,7 +78,7 @@ async function updateOrder(connection) {
         return;
     }
 
-    const date = readline.question("New Date (YYYY-MM-DD HH:MM:SS): ");
+    const date = readline.question("New Date (YYYY-MM-DD ): ");
     const delivery_address = readline.question("New Delivery Address: ");
     const track_number = readline.question("New Track Number: ");
     const status = readline.question("New Status : ");
@@ -156,7 +156,7 @@ async function addOrderDetails(connection, orderId) {
 
                 try {
                     await connection.query(
-                        'INSERT INTO orderdetails (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
+                        'INSERT INTO order_details (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
                         [orderId, productId, quantity, price]
                     );
                     console.log("Product added to order.");
