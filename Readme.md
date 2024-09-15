@@ -44,18 +44,7 @@ node ./src/app.js
 ```
 ## Configuration de la Base de Données
 
-Modifiez le fichier `src/db.js` pour configurer la connexion à la base de données :
-
-```javascript
-const mysql = require('mysql2/promise');
-
-const connection = await mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'C17065',
-    database: 'commerce_db'
-});
-```
+Modifiez le fichier `src/config/db.js` pour configurer la connexion à la base de données 
 
 ## Fonctionnalités
 

@@ -1,5 +1,5 @@
 const readline = require('readline-sync');
-const db = require('./db');
+const db = require('../config/db');
 
 function validateProduct(name, description, price, stock, category, barcode, status) {
     let isValid = true;

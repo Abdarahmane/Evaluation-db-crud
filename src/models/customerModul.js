@@ -1,5 +1,5 @@
 const readline = require('readline-sync');
-const db = require('./db');
+const db = require('../config/db');
 
 // Centralize error handling
 function displayError(message) {

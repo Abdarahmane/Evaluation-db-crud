@@ -1,10 +1,11 @@
 
 const readline = require('readline-sync');
-const db = require('./db');
-const customers = require('./customersModule');
-const products = require('./productsModule');
-const orders = require('./ordersModule');
-const payments = require('./paymentsModule');
+const db = require('./config/db');
+const customers = require('./models/customerModul');
+const products = require('./models/productModul');
+const orders = require('./models/orderModul');
+const payments = require('./models/paymentModul');
+ 
 
 // Menu Principal
 async function principalMenu(connection) {
