@@ -1,39 +1,77 @@
 const readline = require('readline-sync');
 const db = require('./db');
 
-// Validate payment data
-function validatePayment(date, amount, payment_method, order_id) {
-    let isValid = true;
-
+function validateDate(date) {
     if (!date) {
-        console.log("Date is required.");
-        isValid = false;
+        return "Date is required.";
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return "Invalid date format. Use YYYY-MM-DD.";
     }
-    if (amount === undefined || isNaN(amount) || amount <= 0) {
-        console.log("Amount must be a positive number.");
-        isValid = false;
-    }
-    if (!payment_method) {
-        console.log("Payment Method is required.");
-        isValid = false;
-    }
-    if (order_id === undefined || isNaN(order_id)) {
-        console.log("Order ID is required.");
-        isValid = false;
-    }
-
-    return isValid;
+    return null;
 }
 
-// Add a new payment
-async function addPayment() {
-    const date = readline.question("Date (YYYY-MM-DD): ");
-    const amount = parseFloat(readline.question("Amount: "));
-    const payment_method = readline.question("Payment Method: ");
-    const order_id = readline.questionInt("Order ID: ");
+function validateAmount(amount) {
+    if (amount === undefined || isNaN(amount) || amount <= 0) {
+        return "Amount must be a positive number.";
+    }
+    return null;
+}
 
-    if (!validatePayment(date, amount, payment_method, order_id)) {
-        return;
+function validatePaymentMethod(payment_method) {
+    if (!payment_method) {
+        return "Payment Method is required.";
+    }
+    return null;
+}
+
+function validateOrderId(order_id) {
+    if (order_id === undefined || isNaN(order_id)) {
+        return "Order ID must be a number.";
+    }
+    return null;
+}
+
+async function addPayment() {
+    let date, amount, payment_method, order_id;
+
+    while (true) {
+        date = readline.question("Date (YYYY-MM-DD): ");
+        const error = validateDate(date);
+        if (error) {
+            console.log(error);
+        } else {
+            break;
+        }
+    }
+
+    while (true) {
+        amount = parseFloat(readline.question("Amount: "));
+        const error = validateAmount(amount);
+        if (error) {
+            console.log(error);
+        } else {
+            break;
+        }
+    }
+
+    while (true) {
+        payment_method = readline.question("Payment Method: ");
+        const error = validatePaymentMethod(payment_method);
+        if (error) {
+            console.log(error);
+        } else {
+            break;
+        }
+    }
+
+    while (true) {
+        order_id = readline.questionInt("Order ID: ");
+        const error = validateOrderId(order_id);
+        if (error) {
+            console.log(error);
+        } else {
+            break;
+        }
     }
 
     try {
@@ -44,17 +82,53 @@ async function addPayment() {
     }
 }
 
-// Update an existing payment
 async function updatePayment() {
-    const id = readline.questionInt("ID of the payment to update: ");
+    let id, date, amount, payment_method, order_id;
 
-    const date = readline.question("New Date (YYYY-MM-DD): ");
-    const amount = parseFloat(readline.question("New Amount: "));
-    const payment_method = readline.question("New Payment Method: ");
-    const order_id = readline.questionInt("New Order ID: ");
-
-    if (!validatePayment(date, amount, payment_method, order_id)) {
+    id = readline.questionInt("ID of the payment to update: ");
+    if (isNaN(id) || id <= 0) {
+        console.log("Invalid ID. Must be a positive number.");
         return;
+    }
+
+    while (true) {
+        date = readline.question("New Date (YYYY-MM-DD): ");
+        const error = validateDate(date);
+        if (error) {
+            console.log(error);
+        } else {
+            break;
+        }
+    }
+
+    while (true) {
+        amount = parseFloat(readline.question("New Amount: "));
+        const error = validateAmount(amount);
+        if (error) {
+            console.log(error);
+        } else {
+            break;
+        }
+    }
+
+    while (true) {
+        payment_method = readline.question("New Payment Method: ");
+        const error = validatePaymentMethod(payment_method);
+        if (error) {
+            console.log(error);
+        } else {
+            break;
+        }
+    }
+
+    while (true) {
+        order_id = readline.questionInt("New Order ID: ");
+        const error = validateOrderId(order_id);
+        if (error) {
+            console.log(error);
+        } else {
+            break;
+        }
     }
 
     try {
@@ -65,9 +139,13 @@ async function updatePayment() {
     }
 }
 
-// Delete a payment
 async function deletePayment() {
     const id = readline.questionInt("ID of the payment to delete: ");
+
+    if (isNaN(id) || id <= 0) {
+        console.log("Invalid ID. Must be a positive number.");
+        return;
+    }
 
     try {
         await db.query('DELETE FROM payments WHERE id = ?', [id]);
@@ -77,7 +155,6 @@ async function deletePayment() {
     }
 }
 
-// Display all payments
 async function displayPayments() {
     try {
         const [results] = await db.query('SELECT * FROM payments');
