@@ -1,11 +1,9 @@
 const readline = require('readline-sync');
 const db = require('./db');
 
-// Validate product data
 function validateProduct(name, description, price, stock, category, barcode, status) {
     let isValid = true;
 
-    // Validate name (only letters and spaces)
     const nameRegex = /^[A-Za-z\s]+$/;
     if (!name) {
         console.log("Product Name is required.");
@@ -20,13 +18,11 @@ function validateProduct(name, description, price, stock, category, barcode, sta
         isValid = false;
     }
 
-    // Validate price
     if (price === undefined || isNaN(price) || price <= 0) {
         console.log("Product Price must be a positive number.");
         isValid = false;
     }
 
-    // Validate stock
     if (stock === undefined || isNaN(stock) || stock < 0) {
         console.log("Product Stock must be a non-negative integer.");
         isValid = false;
@@ -50,13 +46,12 @@ function validateProduct(name, description, price, stock, category, barcode, sta
     return isValid;
 }
 
-// Add a new product
 async function addProduct() {
     let name;
     while (true) {
         name = readline.question("Product Name: ");
         if (/^[A-Za-z\s]+$/.test(name)) {
-            break; // Break loop if name is valid
+            break;
         } else {
             console.log("Product Name must contain only letters and spaces. Please try again.");
         }
@@ -68,7 +63,7 @@ async function addProduct() {
     while (true) {
         price = parseFloat(readline.question("Product Price: "));
         if (!isNaN(price) && price > 0) {
-            break; // Break loop if price is valid
+            break;
         } else {
             console.log("Product Price must be a positive number. Please try again.");
         }
@@ -78,7 +73,7 @@ async function addProduct() {
     while (true) {
         stock = parseInt(readline.question("Product Stock: "));
         if (!isNaN(stock) && stock >= 0) {
-            break; // Break loop if stock is valid
+            break;
         } else {
             console.log("Product Stock must be a non-negative integer. Please try again.");
         }
@@ -93,14 +88,16 @@ async function addProduct() {
     }
 
     try {
-        await db.query('INSERT INTO products (name, description, price, stock, category, barcode, status) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, description, price, stock, category, barcode, status]);
+        await db.query(
+            'INSERT INTO products (name, description, price, stock, category, barcode, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [name, description, price, stock, category, barcode, status]
+        );
         console.log("Product successfully added!");
     } catch (err) {
         console.error("Error adding product:", err.message);
     }
 }
 
-// Update an existing product
 async function updateProduct() {
     const id = readline.questionInt("ID of the product to update: ");
 
@@ -108,7 +105,7 @@ async function updateProduct() {
     while (true) {
         name = readline.question("New Name: ");
         if (/^[A-Za-z\s]+$/.test(name)) {
-            break; // Break loop if name is valid
+            break;
         } else {
             console.log("Product Name must contain only letters and spaces. Please try again.");
         }
@@ -120,7 +117,7 @@ async function updateProduct() {
     while (true) {
         price = parseFloat(readline.question("New Price: "));
         if (!isNaN(price) && price > 0) {
-            break; // Break loop if price is valid
+            break;
         } else {
             console.log("Product Price must be a positive number. Please try again.");
         }
@@ -130,7 +127,7 @@ async function updateProduct() {
     while (true) {
         stock = parseInt(readline.question("New Stock: "));
         if (!isNaN(stock) && stock >= 0) {
-            break; // Break loop if stock is valid
+            break;
         } else {
             console.log("Product Stock must be a non-negative integer. Please try again.");
         }
@@ -145,18 +142,36 @@ async function updateProduct() {
     }
 
     try {
-        await db.query('UPDATE products SET name = ?, description = ?, price = ?, stock = ?, category = ?, barcode = ?, status = ? WHERE id = ?', [name, description, price, stock, category, barcode, status, id]);
+        await db.query(
+            'UPDATE products SET name = ?, description = ?, price = ?, stock = ?, category = ?, barcode = ?, status = ? WHERE id = ?',
+            [name, description, price, stock, category, barcode, status, id]
+        );
         console.log("Product successfully updated!");
     } catch (err) {
         console.error("Error updating product:", err.message);
     }
 }
 
-// Delete a product
 async function deleteProduct() {
     const id = readline.questionInt("ID of the product to delete: ");
 
     try {
+        const [orderDetails] = await db.query('SELECT id FROM order_details WHERE product_id = ?', [id]);
+
+        if (Array.isArray(orderDetails) && orderDetails.length > 0) {
+            console.log("There are order details associated with this product.");
+            console.table(orderDetails);
+            
+            const confirm = readline.keyInYNStrict('Do you want to delete these order details as well?');
+            if (confirm) {
+                await db.query('DELETE FROM order_details WHERE product_id = ?', [id]);
+                console.log("Order details deleted.");
+            } else {
+                console.log("Product deletion aborted.");
+                return;
+            }
+        }
+
         await db.query('DELETE FROM products WHERE id = ?', [id]);
         console.log("Product successfully deleted!");
     } catch (err) {
@@ -164,7 +179,6 @@ async function deleteProduct() {
     }
 }
 
-// Display all products
 async function displayProducts() {
     try {
         const [results] = await db.query('SELECT * FROM products');
