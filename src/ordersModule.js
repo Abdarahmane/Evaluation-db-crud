@@ -1,126 +1,165 @@
+// Import dependencies
 const readline = require('readline-sync');
 const db = require('./db');
 
-// Valider les données de la commande
+// Error handling function
+function displayError(message) {
+    console.log("Error: " + message);
+}
+
+// Function to validate order details
 function validateOrder(date, delivery_address, track_number, status) {
     let isValid = true;
 
-    if (!date) {
-        console.log("Order Date is required.");
+    if (!/^(\d{4})-(\d{2})-(\d{2})$/.test(date)) {
+        displayError("Order Date is required and must be in YYYY-MM-DD format.");
         isValid = false;
     }
-
     if (!delivery_address) {
-        console.log("Delivery Address is required.");
+        displayError("Delivery Address is required.");
         isValid = false;
     }
     if (!track_number) {
-        console.log("Track Number is required.");
+        displayError("Track Number is required.");
         isValid = false;
     }
     if (!status) {
-        console.log("Order Status is required.");
+        displayError("Order Status is required.");
         isValid = false;
     }
 
     return isValid;
 }
 
-// Vérifier si une commande existe
+// Function to check if an order exists by ID
 async function checkOrderExists(connection, id) {
     try {
         const [results] = await connection.query('SELECT * FROM orders WHERE id = ?', [id]);
         if (results.length === 0) {
-            console.log("Order not found.");
+            displayError("Order not found.");
             return false;
         }
         return true;
     } catch (err) {
-        console.error('Error checking order:', err.message);
+        displayError('Error checking order: ' + err.message);
         return false;
     }
 }
 
-// Ajouter une nouvelle commande
+// Function to add a new order
 async function addOrder(connection) {
-    try {
-        const orderDate = readline.question("Order Date (YYYY-MM-DD ): ");
-        const delivery_Address = readline.question("Delivery Address: ");
-        const track_number = readline.question("Track Number: ");
-        const status = readline.question("Order Status : ");
+    let orderDate, deliveryAddress, trackNumber, status;
 
-        if (!validateOrder(orderDate, delivery_Address, track_number, status)) {
-            return;
+    // Validate Order Date
+    while (true) {
+        orderDate = readline.question("Order Date (YYYY-MM-DD): ");
+        if (!/^(\d{4})-(\d{2})-(\d{2})$/.test(orderDate)) {
+            displayError("Order Date is required and must be in YYYY-MM-DD format.");
+        } else {
+            break;
         }
+    }
 
-        const orderQuery = 'INSERT INTO orders (date, delivery_address, track_number, status) VALUES (?, ?, ?, ?)';
-        const orderValues = [orderDate, delivery_Address, track_number, status];
+    // Validate Delivery Address
+    while (true) {
+        deliveryAddress = readline.question("Delivery Address: ");
+        if (!deliveryAddress) {
+            displayError("Delivery Address is required.");
+        } else {
+            break;
+        }
+    }
 
-        const [result] = await connection.query(orderQuery, orderValues);
+    // Validate Track Number
+    while (true) {
+        trackNumber = readline.question("Track Number: ");
+        if (!trackNumber) {
+            displayError("Track Number is required.");
+        } else {
+            break;
+        }
+    }
+
+    // Validate Status
+    while (true) {
+        status = readline.question("Order Status: ");
+        if (!status) {
+            displayError("Order Status is required.");
+        } else {
+            break;
+        }
+    }
+
+    // Insert order into the database
+    try {
+        const query = 'INSERT INTO orders (date, delivery_address, track_number, status) VALUES (?, ?, ?, ?)';
+        const values = [orderDate, deliveryAddress, trackNumber, status];
+
+        const [result] = await connection.query(query, values);
         const orderId = result.insertId;
 
         console.log("Order added successfully. Order ID:", orderId);
-
-        // Ajouter les détails de la commande
-        await addOrderDetails(connection, orderId);
+        await addOrderDetails(connection, orderId);  // Add details to the order
 
     } catch (error) {
-        console.error('Error adding order:', error.message);
+        displayError('Error adding order: ' + error.message);
     }
 }
 
-// Mettre à jour une commande existante
+// Function to update an existing order
 async function updateOrder(connection) {
     const id = readline.questionInt("ID of the order to update: ");
+    
+    if (!(await checkOrderExists(connection, id))) return;
 
-    const exists = await checkOrderExists(connection, id);
-    if (!exists) {
-        return;
+    let date, delivery_address, track_number, status;
+
+    // Validate and update fields
+    while (true) {
+        date = readline.question("New Date (YYYY-MM-DD): ");
+        if (!/^(\d{4})-(\d{2})-(\d{2})$/.test(date)) {
+            displayError("New Date is required and must be in YYYY-MM-DD format.");
+        } else {
+            break;
+        }
     }
+    
+    delivery_address = readline.question("New Delivery Address: ");
+    track_number = readline.question("New Track Number: ");
+    status = readline.question("New Status: ");
 
-    const date = readline.question("New Date (YYYY-MM-DD ): ");
-    const delivery_address = readline.question("New Delivery Address: ");
-    const track_number = readline.question("New Track Number: ");
-    const status = readline.question("New Status : ");
-
-    if (!validateOrder(date, delivery_address, track_number, status)) {
-        return;
-    }
-
+    // Update order in the database
     try {
-        const [result] = await connection.query(
-            'UPDATE orders SET date = ?, delivery_address = ?, track_number = ?, status = ? WHERE id = ?', 
-            [date, delivery_address, track_number, status, id]
-        );
+        const query = 'UPDATE orders SET date = ?, delivery_address = ?, track_number = ?, status = ? WHERE id = ?';
+        const values = [date, delivery_address, track_number, status, id];
+
+        const [result] = await connection.query(query, values);
         if (result.affectedRows === 0) {
             console.log("No order updated.");
         } else {
             console.log("Order successfully updated!");
         }
     } catch (err) {
-        console.error("Error updating order:", err.message);
+        displayError("Error updating order: " + err.message);
     }
 }
 
-// Supprimer une commande existante et ses détails
+// Function to delete an order and its details
 async function deleteOrder(connection) {
     const id = readline.questionInt("ID of the order to delete: ");
-
-    const exists = await checkOrderExists(connection, id);
-    if (!exists) {
-        return;
-    }
+    
+    if (!(await checkOrderExists(connection, id))) return;
 
     try {
         await connection.query('DELETE FROM order_details WHERE order_id = ?', [id]);
         await connection.query('DELETE FROM orders WHERE id = ?', [id]);
         console.log("Order successfully deleted!");
     } catch (err) {
-        console.error('Error deleting order:', err.message);
+        displayError('Error deleting order: ' + err.message);
     }
 }
 
-// Afficher toutes les commandes
+// Function to display all orders
 async function displayOrders(connection) {
     try {
         const [results] = await connection.query('SELECT * FROM orders');
@@ -130,11 +169,11 @@ async function displayOrders(connection) {
             console.table(results);
         }
     } catch (err) {
-        console.error('Error displaying orders:', err.message);
+        displayError('Error displaying orders: ' + err.message);
     }
 }
 
-// Ajouter un produit à une commande
+// Function to add product details to an order
 async function addOrderDetails(connection, orderId) {
     while (true) {
         console.log("\nOrder Details Menu:");
@@ -150,18 +189,16 @@ async function addOrderDetails(connection, orderId) {
                 const price = readline.questionFloat("Enter price: ");
 
                 if (isNaN(productId) || isNaN(quantity) || quantity <= 0 || isNaN(price) || price <= 0) {
-                    console.log("Invalid input for product ID, quantity, or price. Please try again.");
+                    displayError("Invalid input for product ID, quantity, or price.");
                     break;
                 }
 
                 try {
-                    await connection.query(
-                        'INSERT INTO order_details (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
-                        [orderId, productId, quantity, price]
-                    );
+                    const query = 'INSERT INTO order_details (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)';
+                    await connection.query(query, [orderId, productId, quantity, price]);
                     console.log("Product added to order.");
                 } catch (err) {
-                    console.error("Error adding product:", err.message);
+                    displayError("Error adding product: " + err.message);
                 }
                 break;
 
@@ -174,11 +211,12 @@ async function addOrderDetails(connection, orderId) {
                 return;
 
             default:
-                console.log("Invalid option, please try again.");
+                displayError("Invalid option, please try again.");
         }
     }
 }
 
+// Export functions
 module.exports = {
     addOrder,
     updateOrder,
