@@ -44,7 +44,7 @@ node ./src/app.js
 ```
 ## Configuration de la Base de Données
 
-Modifiez le fichier `src/config/db.js` pour configurer la connexion à la base de données 
+ `src/config/db.js` pour configurer la connexion à la base de données 
 
 ## Fonctionnalités
 
