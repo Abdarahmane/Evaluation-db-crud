@@ -1,6 +1,7 @@
 const readline = require('readline-sync');
 const db = require('../config/db');
 
+
 function validateDate(date) {
     if (!date) {
         return "Date is required.";
@@ -9,6 +10,7 @@ function validateDate(date) {
     }
     return null;
 }
+
 
 function validateAmount(amount) {
     if (amount === undefined || isNaN(amount) || amount <= 0) {
@@ -24,12 +26,24 @@ function validatePaymentMethod(payment_method) {
     return null;
 }
 
+
 function validateOrderId(order_id) {
     if (order_id === undefined || isNaN(order_id)) {
         return "Order ID must be a number.";
     }
     return null;
 }
+
+async function paymentExists(id) {
+    try {
+        const [rows] = await db.query('SELECT id FROM payments WHERE id = ?', [id]);
+        return rows.length > 0;
+    } catch (err) {
+        console.error("Error checking payment existence:", err.message);
+        return false;
+    }
+}
+
 
 async function addPayment() {
     let date, amount, payment_method, order_id;
@@ -82,12 +96,19 @@ async function addPayment() {
     }
 }
 
+
 async function updatePayment() {
     let id, date, amount, payment_method, order_id;
 
     id = readline.questionInt("ID of the payment to update: ");
     if (isNaN(id) || id <= 0) {
         console.log("Invalid ID. Must be a positive number.");
+        return;
+    }
+
+    const exists = await paymentExists(id);
+    if (!exists) {
+        console.log("Payment ID does not exist.");
         return;
     }
 
@@ -139,11 +160,18 @@ async function updatePayment() {
     }
 }
 
+
 async function deletePayment() {
     const id = readline.questionInt("ID of the payment to delete: ");
 
     if (isNaN(id) || id <= 0) {
         console.log("Invalid ID. Must be a positive number.");
+        return;
+    }
+
+    const exists = await paymentExists(id);
+    if (!exists) {
+        console.log("Payment ID does not exist.");
         return;
     }
 
@@ -154,6 +182,7 @@ async function deletePayment() {
         console.error('Error deleting payment:', err.message);
     }
 }
+
 
 async function displayPayments() {
     try {
