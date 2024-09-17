@@ -137,7 +137,7 @@ async function deleteCustomer() {
         await db.query('DELETE FROM Customers WHERE id = ?', [id]);
         console.log("Customer successfully deleted!");
     } catch (err) {
-        displayError("Error deleting customer: " + err.message);
+        displayError('Error deleting customer: ' + err.message);
     }
 }
 
