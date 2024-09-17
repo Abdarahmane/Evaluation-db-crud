@@ -47,9 +47,8 @@ async function checkOrderExists(connection, id) {
 }
 
 // Function to add a new order
-async function addOrder(connection) {
-    let orderDate, deliveryAddress, trackNumber, status;
-
+async function addOrder(connection) {  
+     let orderDate, deliveryAddress, trackNumber, status, customerId;
     // Validate Order Date
     while (true) {
         orderDate = readline.question("Order Date (YYYY-MM-DD): ");
@@ -89,11 +88,19 @@ async function addOrder(connection) {
             break;
         }
     }
+    while (true) {
+        customerId = readline.questionInt("Customer ID: ");
+        if (!customerId) {
+            displayError("Customer ID is required.");
+        } else {
+            break;
+        }
+    }
 
     // Insert order into the database
     try {
-        const query = 'INSERT INTO orders (date, delivery_address, track_number, status) VALUES (?, ?, ?, ?)';
-        const values = [orderDate, deliveryAddress, trackNumber, status];
+        const query = 'INSERT INTO orders (customer_id, date, delivery_address, track_number, status) VALUES (?, ?, ?, ?, ?)';
+        const values = [customerId, orderDate, deliveryAddress, trackNumber, status];
 
         const [result] = await connection.query(query, values);
         const orderId = result.insertId;
@@ -105,14 +112,13 @@ async function addOrder(connection) {
         displayError('Error adding order: ' + error.message);
     }
 }
-
 // Function to update an existing order
 async function updateOrder(connection) {
     const id = readline.questionInt("ID of the order to update: ");
     
     if (!(await checkOrderExists(connection, id))) return;
 
-    let date, delivery_address, track_number, status;
+    let date, delivery_address, track_number, status, customerId;
 
     // Validate and update fields
     while (true) {
@@ -130,8 +136,8 @@ async function updateOrder(connection) {
 
     // Update order in the database
     try {
-        const query = 'UPDATE orders SET date = ?, delivery_address = ?, track_number = ?, status = ? WHERE id = ?';
-        const values = [date, delivery_address, track_number, status, id];
+        const query = 'UPDATE orders SET customer_id = ?, date = ?, delivery_address = ?, track_number = ?, status = ? WHERE id = ?';
+        const values = [customerId, date, delivery_address, track_number, status, id];
 
         const [result] = await connection.query(query, values);
         if (result.affectedRows === 0) {
