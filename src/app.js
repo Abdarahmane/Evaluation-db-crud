@@ -1,10 +1,11 @@
 
 const readline = require('readline-sync');
 const db = require('./config/db');
-const customers = require('./models/customerModul');
-const products = require('./models/productModul');
-const orders = require('./models/orderModul');
-const payments = require('./models/paymentModul');
+const customers = require('./models/customerModule');
+const products = require('./models/productModule');
+const orders  = require('./models/orderModule');
+const payments = require('./models/paymentModule');
+const { viewOrderDetails}  = require('./models/orderModule');
  
 
 // Menu Principal
@@ -47,7 +48,8 @@ async function orderMenu(connection) {
     console.log("2. Update an order");
     console.log("3. Delete an order");
     console.log("4. Display orders");
-    console.log("5. Back to Principal Menu");
+    console.log("5. View Order Details")
+    console.log("6. Back to Principal Menu");
 
     const choice = readline.questionInt("Choose an option: ");
     try {
@@ -64,8 +66,11 @@ async function orderMenu(connection) {
             case 4:
                 await orders.displayOrders(connection);
                 break;
-            
             case 5:
+                await viewOrderDetails(connection);
+                break;
+            
+            case 6:
                 return;
             default:
                 console.log("Invalid option, please try again.");
@@ -76,58 +81,7 @@ async function orderMenu(connection) {
     await orderMenu(connection);
 }
 
-// Menu des Détails de Commande
-async function orderDetailMenu(connection, orderId) {
-    try {
-        while (true) {
-            console.log("\nOrder Details Menu:");
-            console.log("11. Add a product to the order");
-            console.log("12. Save and finish adding details");
-            console.log("13. Return to Order Menu");
 
-            const choice = readline.questionInt("Choose an option: ");
-            switch (choice) {
-                case 1:
-                    // Ajouter un produit à la commande
-                    const productId = readline.questionInt("Enter product ID: ");
-                    const quantity = readline.questionInt("Enter quantity: ");
-
-                    // Validation des données
-                    if (isNaN(productId) || isNaN(quantity) || quantity <= 0) {
-                        console.log("Invalid product ID or quantity. Please try again.");
-                        break;
-                    }
-
-                    // Préparer la requête d'insertion pour les détails de la commande
-                    const detailsQuery = 'INSERT INTO order_Details (order_Id, product_Id, quantity) VALUES (?, ?, ?)';
-                    const detailsValues = [orderId, productId, quantity];
-
-                    try {
-                        await db.query(detailsQuery, detailsValues);
-                        console.log("Product added to order.");
-                    } catch (err) {
-                        console.error('Error executing query:', err.message);
-                    }
-                    break;
-
-                case 2:
-                    // Enregistrer et finir l'ajout des détails de la commande
-                    console.log("Order details saved.");
-                    return;
-
-                case 3:
-                    // Retourner au menu des commandes
-                    console.log("Returning to Order Menu.");
-                    return;
-
-                default:
-                    console.log("Invalid option, please try again.");
-            }
-        }
-    } catch (error) {
-        console.error('Error adding order details:', error.message);
-    }
-}
 
 // Menu des Clients
 async function customerMenu(connection) {
