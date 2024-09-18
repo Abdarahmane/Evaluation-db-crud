@@ -36,7 +36,7 @@ function validateOrderId(order_id) {
 
 async function paymentExists(id) {
     try {
-        const [rows] = await db.query('SELECT id FROM payments WHERE id = ?', [id]);
+        const rows = await db.query('SELECT id FROM payments WHERE id = ?', [id]);
         return rows.length > 0;
     } catch (err) {
         console.error("Error checking payment existence:", err.message);
@@ -186,7 +186,7 @@ async function deletePayment() {
 
 async function displayPayments() {
     try {
-        const [results] = await db.query('SELECT * FROM payments');
+        const results = await db.query('SELECT * FROM payments');
         if (results.length === 0) {
             console.log("No payments found.");
         } else {
